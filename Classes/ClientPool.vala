@@ -15,18 +15,30 @@ namespace Tryangle {
 		public void addClient(Client objClient){
 			this.lstClients.add(objClient);
 			this.intClients++;
+			Logger.Log("Client accepted");
 		}
 		
 		public void* run(){
 			Logger.Log("Client pool running");
 			string? strData = null;
+			ssize_t intRead;
 			while(true){
 				if(this.lstClients != null){
 					foreach(Client objClient in this.lstClients){
-						strData = objClient.recvData();
-						if(strData != null){
-							Logger.Log("Received data: " + strData);
+						uint8[] bytBuffer = new uint8[1024];
+						try {
+							intRead = objClient.objSocket.receive(bytBuffer);
+						} catch(GLib.Error objError){
+							//Logger.Log(objError.message);
+							continue;
 						}
+						if(intRead == 0){
+							Logger.Log("Client disconnected");
+							this.lstClients.remove(objClient);
+							continue;
+						}
+						strData = (string)bytBuffer;
+						Logger.Log("Received data: " + strData);
 					}
 				}
 			}

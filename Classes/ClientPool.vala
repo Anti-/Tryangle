@@ -26,6 +26,11 @@ namespace Tryangle {
 		
 		public void removeClient(Client objClient){
 			this.mapClients.unset(objClient.objSocket);
+			try {
+				objClient.objSocket.close();
+			} catch(GLib.Error objError){
+				Logger.Log(objError.message, Logger.Level.Error);
+			}
 			this.intClients--;
 			Logger.Log("Client disconnected", Logger.Level.Info);
 		}
@@ -40,7 +45,9 @@ namespace Tryangle {
 					break;
 				}
 				Gee.ArrayList<Client> arrClients = this.getClients();
-				foreach(Client objClient in arrClients){
+				Gee.Iterator<Client> objIterator = arrClients.iterator();
+				while(objIterator.next()){
+					Client objClient = objIterator.get();
 					uint8[] bytBuffer = new uint8[1024];
 					try {
 						intRead = objClient.objSocket.receive(bytBuffer);
@@ -52,8 +59,8 @@ namespace Tryangle {
 						continue;
 					}
 					strData = (string)bytBuffer;
-					/* Splitting by \0 doesn't seem to be needed; it only breaks things! */
 					this.objParent.handleData(objClient, strData);
+					objIterator.remove();
 				}
 			}
 			return null;

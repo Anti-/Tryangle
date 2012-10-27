@@ -24,6 +24,7 @@ namespace Tryangle {
 		
 		public void handleData(Client objClient, string strData){
 			Logger.Log("Received data: " + strData, Logger.Level.Info);
+			objClient.sendPacket("Received " + strData);
 		}
 		
 	}
